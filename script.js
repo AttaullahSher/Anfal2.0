@@ -7,6 +7,13 @@ const productsPerPage = 50;
 let currentPage = 1;
 let currentCategory = 'Featured';
 
+// Stock icon SVG
+const stockIcon = `
+    <svg class="stock-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+    </svg>
+`;
+
 // Fetch products from the Google Sheet CSV
 function fetchProducts() {
     fetch(sheetUrl)
@@ -56,7 +63,8 @@ function groupProducts() {
                 Category: product.Category,
                 Variants: [],
                 Images: [],
-                Featured: product.Featured
+                Featured: product.Featured,
+                TotalQuantity: 0
             };
         }
         acc[product.Model].Variants.push({
@@ -65,11 +73,13 @@ function groupProducts() {
             Size: product.Size,
             SellingPrice: product.SellingPrice,
             SalePrice: product.SalePrice,
-            Quantity: product.Quantity
+            Quantity: product.Quantity,
+            Image: product.Image
         });
         if (product.Image && !acc[product.Model].Images.includes(product.Image)) {
             acc[product.Model].Images.push(product.Image);
         }
+        acc[product.Model].TotalQuantity += product.Quantity;
         return acc;
     }, {});
 }
@@ -148,7 +158,10 @@ function displayProducts(category = 'Featured', page = 1) {
                     ${hasSale ? '<span class="badge sale">Sale</span>' : ''}
                 </div>
                 <div class="product-details">
-                    <p class="sku">${model.toUpperCase()}</p>
+                    <div class="sku-container">
+                        <p class="sku">${model.toUpperCase()}</p>
+                        <span class="stock-info">${stockIcon}${product.TotalQuantity}</span>
+                    </div>
                     <h3>${product.Title}</h3>
                 </div>
                 <div class="price-container">
@@ -207,13 +220,16 @@ function viewProduct(model) {
                         const hasSale = variant.SalePrice && variant.SalePrice !== variant.SellingPrice;
                         return `
                             <div class="product-item">
-                                <div class="image-wrapper" onclick="openZoomPopup('./assets/Product_Images/${product.Images[0] || ''}')">
-                                    <img src="./assets/Product_Images/${product.Images[0] || ''}" alt="${variant.SKU}" onload="this.classList.add('visible')" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.add('visible');">
+                                <div class="image-wrapper" onclick="openZoomPopup('./assets/Product_Images/${variant.Image || ''}')">
+                                    <img src="./assets/Product_Images/${variant.Image || ''}" alt="${variant.SKU}" onload="this.classList.add('visible')" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.add('visible');">
                                     <div class="no-image">No Image</div>
                                     ${hasSale ? '<span class="badge sale">Sale</span>' : ''}
                                 </div>
                                 <div class="product-details">
-                                    <p class="sku">${variant.SKU}</p>
+                                    <div class="sku-container">
+                                        <p class="sku">${variant.SKU}</p>
+                                        <span class="stock-info">${stockIcon}${variant.Quantity}</span>
+                                    </div>
                                     <h3>${product.Title}</h3>
                                 </div>
                                 <div class="price-container">
@@ -437,7 +453,10 @@ function searchProducts() {
                     ${hasSale ? '<span class="badge sale">Sale</span>' : ''}
                 </div>
                 <div class="product-details">
-                    <p class="sku">${model.toUpperCase()}</p>
+                    <div class="sku-container">
+                        <p class="sku">${model.toUpperCase()}</p>
+                        <span class="stock-info">${stockIcon}${product.TotalQuantity}</span>
+                    </div>
                     <h3>${product.Title}</h3>
                 </div>
                 <div class="price-container">
