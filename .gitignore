@@ -1,0 +1,10 @@
+# Ignore product images directory (optional)
+# Uncomment the line below if you don't want to commit the Product_Images directory
+# assets/Product_Images/
+
+# Ignore OS and editor files
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
